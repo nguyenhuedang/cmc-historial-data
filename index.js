@@ -48,6 +48,6 @@ var server = restify.createServer();
 server.get('/:name/:date', respond);
 server.head('/:name/:date', respond);
 
-server.listen(80, function() {
+server.listen(443, function() {
   console.log('%s listening at %s', server.name, server.url);
 });
