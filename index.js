@@ -28,11 +28,6 @@ const request = async ({ name, date }) => {
   return { open, high, low, close, volume, cap };
 };
 
-// (async () => {
-//   const data = await request({ name: 'bitcoin', date: 'Mar 13, 2018' });
-//   console.log(data);
-// })();
-
 const cache = {};
 
 async function respond(req, res, next) {
@@ -44,10 +39,11 @@ async function respond(req, res, next) {
   next();
 }
 
-var server = restify.createServer();
+const server = restify.createServer();
 server.get('/:name/:date', respond);
 server.head('/:name/:date', respond);
 
-server.listen(443, function() {
+const port = process.env.PORT || 8080;
+server.listen(port, function() {
   console.log('%s listening at %s', server.name, server.url);
 });
