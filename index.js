@@ -1,5 +1,6 @@
 const fetch = require('node-fetch');
 const restify = require('restify');
+let allCoins = null;
 
 const getData = ({ data, date }) => {
   const start = data.indexOf(date);
@@ -12,8 +13,22 @@ const getData = ({ data, date }) => {
   return (data.slice(start, start + end));
 };
 
-const request = async ({ name, date }) => {
-  const url = `https://coinmarketcap.com/currencies/${name}/historical-data/?start=20130428&end=20180314`;
+const getAllCoin = async () => {
+  const url = 'https://api.coinmarketcap.com/v1/ticker/?limit=10000';
+  const response = await fetch(url);
+  return await response.json();
+}
+
+const request = async ({ symbol, date }) => {
+  if (!allCoins) { allCoins = await getAllCoin(); }
+  const target = allCoins.find(
+    coin => coin.symbol.toLowerCase() === symbol.toLowerCase()
+  );
+  if (!target) { throw new Error('Symbol not found'); }
+  console.log(target);
+  const { id } = target;
+
+  const url = `https://coinmarketcap.com/currencies/${id}/historical-data/?start=20130428&end=20180314`;
   const response = await fetch(url);
   const data = await response.text();
   const dateData = getData({ data, date });
@@ -32,21 +47,21 @@ const request = async ({ name, date }) => {
 const cache = {};
 
 async function respond(req, res, next) {
-  const { name, date } = req.params;
-  if (!cache[name + date]) {
+  const { symbol, date } = req.params;
+  if (!cache[symbol + date]) {
     try {
-      cache[name + date] = await request({ name, date });
+      cache[symbol + date] = await request({ symbol, date });
     } catch (err) {
       return next(err);
     }
   }
-  res.send(cache[name + date]);
+  res.send(cache[symbol + date]);
   next();
 }
 
 const server = restify.createServer();
-server.get('/:name/:date', respond);
-server.head('/:name/:date', respond);
+server.get('/:symbol/:date', respond);
+server.head('/:symbol/:date', respond);
 
 const port = process.env.PORT || 8080;
 server.listen(port, function() {
