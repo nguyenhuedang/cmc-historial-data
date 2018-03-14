@@ -36,12 +36,12 @@ async function respond(req, res, next) {
   if (!cache[name + date]) {
     try {
       cache[name + date] = await request({ name, date });
-      res.send(cache[name + date]);
-      next();
     } catch (err) {
       return next(err);
     }
   }
+  res.send(cache[name + date]);
+  next();
 }
 
 const server = restify.createServer();
