@@ -3,40 +3,45 @@ const restify = require('restify');
 
 const getData = ({ data, date }) => {
   const start = data.indexOf(date);
-  const end = (() => {
-    let i = start + 1;
-    while (true) {
-      let check = data[i] + data[i + 1] + data[i + 2] + data[i + 3] + data[i + 4];
-      if (check === '</tr>') { return i; }
-      i++;
-    }
-  })();
-  return (data.slice(start, end));
+  if (start === -1) { throw new Error('Could not find the date'); }
+
+  const end = data
+    .slice(start, data.length)
+    .indexOf('</tr>');
+  if (end === -1) { throw new Error('Could not find the date'); }
+  return (data.slice(start, start + end));
 };
 
 const request = async ({ name, date }) => {
-  const url = `https://coinmarketcap.com/currencies/${name}/historical-data/`;
+  const url = `https://coinmarketcap.com/currencies/${name}/historical-data/?start=20130428&end=20180314`;
   const response = await fetch(url);
   const data = await response.text();
   const dateData = getData({ data, date });
+
   const priceData = dateData
     .split(/<td .*?>(.*?)<\/td>/)
     .filter(item => item.indexOf('\n') === -1)
     .map(item => item.replace(/,/g, ''))
-    .map(Number)
+    .map(Number);
   const [ open, high, low, close, volume, cap ] = priceData;
   return { open, high, low, close, volume, cap };
 };
+
+// request({ name: 'qash', date: 'Mar 13, 2018' }).then(console.log);
 
 const cache = {};
 
 async function respond(req, res, next) {
   const { name, date } = req.params;
   if (!cache[name + date]) {
-    cache[name + date] = await request({ name, date });
+    try {
+      cache[name + date] = await request({ name, date });
+      res.send(cache[name + date]);
+      next();
+    } catch (err) {
+      return next(err);
+    }
   }
-  res.send(cache[name + date]);
-  next();
 }
 
 const server = restify.createServer();
