@@ -28,7 +28,7 @@ const request = async ({ symbol, date }) => {
   console.log(target);
   const { id } = target;
 
-  const url = `https://coinmarketcap.com/currencies/${id}/historical-data/?start=20130428&end=20180314`;
+  const url = `https://coinmarketcap.com/currencies/${id}/historical-data/?start=20130428&end=20190314`;
   const response = await fetch(url);
   const data = await response.text();
   const dateData = getData({ data, date });
