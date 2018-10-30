@@ -62,8 +62,10 @@ async function respond(req, res, next) {
 const server = restify.createServer();
 server.get('/:symbol/:date', respond);
 server.head('/:symbol/:date', respond);
-server.on('InternalServer', function (req, res, err, cb) {
-  err.toJSON = err.toString;
+server.on('restifyError', function (req, res, err, cb) {
+  err.toJSON = () => ({
+    message: err.toString(),
+  });
   return cb();
 });
 
