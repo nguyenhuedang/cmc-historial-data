@@ -71,6 +71,12 @@ async function respond(req, res, next) {
 const server = restify.createServer();
 server.get('/:symbol/:date', respond);
 server.head('/:symbol/:date', respond);
+server.on('restifyError', function (req, res, err, cb) {
+  err.toJSON = () => ({
+    message: err.toString(),
+  });
+  return cb();
+});
 
 const port = process.env.PORT || 8080;
 server.listen(port, function() {
