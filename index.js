@@ -13,14 +13,23 @@ const getData = ({ data, date }) => {
   return (data.slice(start, start + end));
 };
 
-const getAllCoin = async () => {
-  const url = 'https://api.coinmarketcap.com/v1/ticker/?limit=10000';
+const getAllCoinsFrom = async (start, limit) => {
+  const url = `https://api.coinmarketcap.com/v1/ticker/?start=${start}&limit=${limit}`;
   const response = await fetch(url);
-  return await response.json();
+  if (response.status === 404) return [];
+
+  const nextCoins = await getAllCoinsFrom(start + limit, limit);
+  const currentCoins = await response.json();
+
+  return currentCoins.concat(nextCoins);
+}
+
+const getAllCoins = async () => {
+  return getAllCoinsFrom(0, 100);
 }
 
 const request = async ({ symbol, date }) => {
-  if (!allCoins) { allCoins = await getAllCoin(); }
+  if (!allCoins) { allCoins = await getAllCoins(); }
   const target = allCoins.find(
     coin => coin.symbol.toLowerCase() === symbol.toLowerCase()
   );
@@ -62,6 +71,12 @@ async function respond(req, res, next) {
 const server = restify.createServer();
 server.get('/:symbol/:date', respond);
 server.head('/:symbol/:date', respond);
+server.on('restifyError', function (req, res, err, cb) {
+  err.toJSON = () => ({
+    message: err.toString(),
+  });
+  return cb();
+});
 
 const port = process.env.PORT || 8080;
 server.listen(port, function() {
