@@ -1,9 +1,14 @@
 {
-  "scripts": {
-    "start": "node index.js"
-  },
   "dependencies": {
-    "node-fetch": "^2.1.1",
-    "restify": "^6.3.4"
+    "@types/bluebird": "^3.5.27",
+    "@types/dotenv": "^6.1.1",
+    "@types/node-fetch": "^2.5.2",
+    "bluebird": "^3.7.0",
+    "dotenv": "^8.1.0",
+    "moment": "^2.24.0",
+    "node-fetch": "^2.6.0",
+    "restify": "^6.3.4",
+    "ts-node": "^8.4.1",
+    "typescript": "^3.6.3"
   }
 }
